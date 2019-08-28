@@ -1,18 +1,23 @@
 package models
 
 import (
-	"log"
 	db "github.com/testGo/databases"
+	"log"
 )
+
 //定义person类型结构
 type Person struct {
 	Id        int    `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
+	UserName  string `json:"username"`
+	PassWord  string `json:"password"`
 }
 
-func (p *Person) AddPerson() (id int64, err error) {
-	rs, err := db.SqlDB.Exec("INSERT INTO person(first_name, last_name) VALUES (?, ?)", p.FirstName, p.LastName)
+func (t *Person) AddPerson() (id int64, err error) {
+	var maxId = 0
+	db.SqlDB.QueryRow("select id from person order by id desc").Scan(&maxId)
+	rs, err := db.SqlDB.Exec("INSERT INTO person(id,first_name, last_name,user_name,pass_word) VALUES (?, '', '', ?, ?)", maxId+1, t.UserName, t.PassWord)
 	if err != nil {
 		return
 	}
@@ -20,16 +25,16 @@ func (p *Person) AddPerson() (id int64, err error) {
 	return
 }
 
-func (p *Person) GetPersons() (persons []Person, err error) {
+func (t *Person) GetPersons() (persons []Person, err error) {
 	persons = make([]Person, 0)
-	rows, err := db.SqlDB.Query("SELECT id, first_name, last_name FROM person")
+	rows, err := db.SqlDB.Query("SELECT id, user_name, pass_word FROM person")
 	defer rows.Close()
 	if err != nil {
 		return
 	}
 	for rows.Next() {
 		var person Person
-		rows.Scan(&person.Id, &person.FirstName, &person.LastName)
+		rows.Scan(&person.Id, &person.UserName, &person.PassWord)
 		persons = append(persons, person)
 	}
 	if err = rows.Err(); err != nil {
@@ -46,12 +51,12 @@ func (p *Person) GetPerson() (person Person, err error) {
 }
 
 func (p *Person) ModPerson() (ra int64, err error) {
-	stmt, err := db.SqlDB.Prepare("UPDATE person SET first_name=?, last_name=? WHERE id=?")
+	stmt, err := db.SqlDB.Prepare("UPDATE person SET user_name=?, pass_word=? WHERE id=?")
 	defer stmt.Close()
 	if err != nil {
 		return
 	}
-	rs, err := stmt.Exec(p.FirstName, p.LastName, p.Id)
+	rs, err := stmt.Exec(p.UserName, p.PassWord, p.Id)
 	if err != nil {
 		return
 	}

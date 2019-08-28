@@ -1,12 +1,14 @@
 package apis
 
 import (
-	"net/http"
-	"log"
+	"encoding/json"
 	"fmt"
-	"strconv"
 	"github.com/gin-gonic/gin"
-	."github.com/testGo/models"
+	. "github.com/testGo/models"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strconv"
 )
 
 func IndexApi(c *gin.Context) {
@@ -14,11 +16,11 @@ func IndexApi(c *gin.Context) {
 }
 
 func AddPersonApi(c *gin.Context) {
-	firstName := c.Request.FormValue("first_name")
-	lastName := c.Request.FormValue("last_name")
-
-	p := Person{FirstName: firstName, LastName: lastName}
-
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	var dat map[string]interface{}
+	if err := json.Unmarshal([]byte(string(body)), &dat); err == nil {
+	}
+	p := Person{UserName: dat["username"].(string), PassWord: dat["password"].(string)}
 	ra, err := p.AddPerson()
 	if err != nil {
 		log.Fatalln(err)
@@ -61,38 +63,32 @@ func GetPersonApi(c *gin.Context) {
 }
 
 func ModPersonApi(c *gin.Context) {
-	cid := c.Param("id")
-	id, err := strconv.Atoi(cid)
-	if err != nil {
-		log.Fatalln(err)
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	var dat map[string]interface{}
+	if err := json.Unmarshal([]byte(string(body)), &dat); err == nil {
 	}
-	p := Person{Id: id}
-	err = c.Bind(&p)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	p := Person{Id: int(dat["id"].(float64)), UserName: dat["username"].(string), PassWord: dat["password"].(string)}
 	ra, err := p.ModPerson()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	msg := fmt.Sprintf("Update person %d successful %d", p.Id, ra)
+	msg := fmt.Sprintf("insert successful %d", ra)
 	c.JSON(http.StatusOK, gin.H{
 		"msg": msg,
 	})
 }
 
 func DelPersonApi(c *gin.Context) {
-	cid := c.Param("id")
-	id, err := strconv.Atoi(cid)
-	if err != nil {
-		log.Fatalln(err)
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	var dat map[string]interface{}
+	if err := json.Unmarshal([]byte(string(body)), &dat); err == nil {
 	}
-	p := Person{Id: id}
+	p := Person{Id: int(dat["id"].(float64))}
 	ra, err := p.DelPerson()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	msg := fmt.Sprintf("Delete person %d successful %d", id, ra)
+	msg := fmt.Sprintf("Delete person %d successful %d", int(dat["id"].(float64)), ra)
 	c.JSON(http.StatusOK, gin.H{
 		"msg": msg,
 	})

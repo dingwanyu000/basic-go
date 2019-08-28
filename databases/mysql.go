@@ -10,7 +10,7 @@ var SqlDB *sql.DB
 //初始化方法
 func init() {
 	var err error
-	SqlDB, err = sql.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/test?parseTime=true")
+	SqlDB, err = sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/test?parseTime=true")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
